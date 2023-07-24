@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 const swaggerDocs = require("./swagger_output.json");
 import corn from "node-cron";
 const app = express();
-const port = 5999;
+const port = process.env.port || 5999;
 const host = "localhost";
 dotenv.config();
 let corsOptions = {
@@ -34,7 +34,7 @@ app.all("*", () => {
 });
 app.use(errorHandler);
 
-app.listen(port, host, async () => {
+app.listen(port, async () => {
     try {
         console.log(`Server hosted in http://${host}:${port}`);
         // await sequelize.authenticate();
