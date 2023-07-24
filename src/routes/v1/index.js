@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import novelRoute from "../../model/novels/novel.route.js";
+import genreRoute from "../../model/genre/genre.route.js";
 const router = Router();
 
 router.use("/", (req, res, next) => {
@@ -10,12 +11,8 @@ router.use("/", (req, res, next) => {
 router.use("/auth", () => {
     console.log("auth route");
 });
-router.use("/novels", novelRoute);
 
-router.use("/genre", () => {
-    console.log("genre route");
-});
-router.use("/chapters", () => {
-    console.log("chapters route");
-});
+router.use("/genre", genreRoute);
+
+router.use("/", novelRoute);
 export default router;

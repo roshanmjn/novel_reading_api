@@ -1,10 +1,17 @@
 import { Router } from "express";
-import * as novelController from "./novel.controller.js";
+import { novelController } from "../../controller/index.js";
 const router = Router();
+
 router.use("/", (req, res, next) => {
     console.log("/novels");
     next();
 });
-router.post("/most-popular", novelController.getMostPopularNovelsData);
+
+//FOR NOVEL
+router.get("/most-popular", novelController.getMostPopularNovelsData);
+
+router.get("/:novelTitle/chapter-:number", novelController.getChapterData);
+
+router.get("/:novelTitle/:pageIndex?", novelController.getNovelWithTitle);
 
 export default router;
