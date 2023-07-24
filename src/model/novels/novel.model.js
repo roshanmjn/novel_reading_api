@@ -1,6 +1,5 @@
 import { sequelize } from "../../database/connection.js";
 import { DataTypes } from "sequelize";
-import { Genre } from "../genre/genre.model.js";
 
 export const Novel = sequelize.define("novel_tbl", {
     id: {
@@ -12,14 +11,6 @@ export const Novel = sequelize.define("novel_tbl", {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    // genre_id: {
-    //     type: DataTypes.INTEGER,
-    //     allowNull: false,
-    //     references: {
-    //         model: Genre,
-    //         key: "id",
-    //     },
-    // },
     chapters: {
         type: DataTypes.INTEGER,
         allowNull: false,

@@ -1,5 +1,5 @@
 import * as novelService from "./novel.service.js";
-import cron from "node-cron";
+
 export const getMostPopularNovelsData = async (req, res, next) => {
     try {
         const data = await novelService.mostPopularNovelsUrlData;
