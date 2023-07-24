@@ -4,7 +4,7 @@ import { load } from "cheerio";
 const novelHomepage = "https://freewebnovel.com/";
 const mostPopularNovelsUrl = "https://freewebnovel.com/most-popular-novels/";
 const genreTitleUrl = "https://freewebnovel.com/genres/Fantasy/";
-const controller = new AbortController();
+
 async function getData(url) {
     try {
         const { data: html } = await axios.get(url, {
