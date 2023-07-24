@@ -5,7 +5,7 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "localhost:5999",
+  "host": "https://novel-reader.onrender.com",
   "basePath": "/api",
   "schemes": [
     "http"
