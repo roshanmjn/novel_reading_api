@@ -1,4 +1,5 @@
 import { ValidationError, DatabaseError } from "sequelize";
+import jwt from "jsonwebtoken";
 const errorHandler = (err, req, res, next) => {
     console.log(err);
     if (err && err.statusCode) {
@@ -8,6 +9,13 @@ const errorHandler = (err, req, res, next) => {
             errors: Array.isArray(err.message)
                 ? err.message
                 : [{ message: err.message }],
+        });
+    }
+    if (err && err instanceof jwt.TokenExpiredError) {
+        res.status(401).json({
+            status: "error",
+            statusCode: 401,
+            message: "Token Expired, Please login again.",
         });
     }
     if (err && err instanceof ValidationError) {

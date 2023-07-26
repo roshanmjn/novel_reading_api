@@ -1,9 +1,13 @@
 import swaggerAutogen from "swagger-autogen";
 
 const outputFile = "./swagger_output.json";
-const endpointsFiles = ["./server.js"];
+const routes = ["./server.js"];
 
-swaggerAutogen(outputFile, endpointsFiles);
-// .then(() => {
-//     require("./server.js");
-//});
+// swaggerAutogen(outputFile, routes);
+
+const doc = {
+    host: "", // by default: 'localhost:3000'
+    basePath: "", // by default: '/'
+};
+
+swaggerAutogen()(outputFile, routes, doc);

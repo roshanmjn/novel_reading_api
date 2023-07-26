@@ -1,4 +1,4 @@
 import HttpException from "./HttpException.js";
 import NotFound from "./NotFound.js";
-
-export { HttpException, NotFound };
+import { parseValidationError } from "./ParseValidationError.js";
+export { HttpException, NotFound, parseValidationError };

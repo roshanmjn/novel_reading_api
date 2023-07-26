@@ -5,13 +5,13 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "novel-reader.onrender.com",
-  "basePath": "/api",
+  "host": "",
+  "basePath": "",
   "schemes": [
-    "https"
+    "http"
   ],
   "paths": {
-    "/v1/genre/": {
+    "/api/v1/genre/": {
       "get": {
         "description": "",
         "responses": {
@@ -21,7 +21,7 @@
         }
       }
     },
-    "/v1/genre/{genreTitle}/{pageIndex?}": {
+    "/api/v1/genre/{genreTitle}/{pageIndex?}": {
       "get": {
         "description": "",
         "parameters": [
@@ -45,7 +45,7 @@
         }
       }
     },
-    "/v1/most-popular": {
+    "/api/v1/most-popular": {
       "get": {
         "description": "",
         "responses": {
@@ -55,7 +55,7 @@
         }
       }
     },
-    "/v1/{novelTitle}/chapter-{number}": {
+    "/api/v1/{novelTitle}/{chapter-number}": {
       "get": {
         "description": "",
         "parameters": [
@@ -66,7 +66,7 @@
             "type": "string"
           },
           {
-            "name": "chapter-:number",
+            "name": "chapter-number",
             "in": "path",
             "required": true,
             "type": "string"
@@ -79,7 +79,7 @@
         }
       }
     },
-    "/v1/{novelTitle}/{pageIndex?}": {
+    "/api/v1/{novelTitle}/{pageIndex?}": {
       "get": {
         "description": "",
         "parameters": [
