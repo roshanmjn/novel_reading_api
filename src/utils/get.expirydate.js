@@ -1,5 +1,5 @@
 import moment from "moment";
-const accessTokenExpire = "5s";
+const accessTokenExpire = "2h";
 const refreshTokenExpire = "10d";
 function currentDate() {
     return moment().tz("Asia/Kathmandu").format("YYYY-MM-DD HH:mm:ss");

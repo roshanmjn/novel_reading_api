@@ -1,7 +1,12 @@
-import { ValidationError, DatabaseError } from "sequelize";
+import {
+    ValidationError,
+    DatabaseError,
+    ForeignKeyConstraintError,
+} from "sequelize";
 import jwt from "jsonwebtoken";
 const errorHandler = (err, req, res, next) => {
     console.log(err);
+
     if (err && err.statusCode) {
         return res.status(err.statusCode).json({
             status: "error",
@@ -11,6 +16,7 @@ const errorHandler = (err, req, res, next) => {
                 : [{ message: err.message }],
         });
     }
+
     if (err && err instanceof jwt.TokenExpiredError) {
         res.status(401).json({
             status: "error",
@@ -25,6 +31,17 @@ const errorHandler = (err, req, res, next) => {
             errors: [{ message: err.errors[0].message }],
         });
     }
+    if (err && err instanceof ForeignKeyConstraintError) {
+        return res.status(403).json({
+            status: "error",
+            statusCode: 403,
+            code: err.parent.code,
+            errno: err.errno,
+            query: err.parent.sql,
+            parameters: err.parent.parameters,
+            errors: [{ message: err.parent.sqlMessage }],
+        });
+    }
     if (err && err instanceof DatabaseError) {
         return res.status(403).json({
             status: "error",
@@ -36,6 +53,7 @@ const errorHandler = (err, req, res, next) => {
             errors: [{ message: err.sqlMessage }],
         });
     }
+
     return res.status(500).json({
         status: "error",
         statusCode: 500,

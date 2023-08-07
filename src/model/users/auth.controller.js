@@ -8,6 +8,7 @@ import {
     expireIn,
     refreshTokenExpire,
 } from "../../utils/get.expirydate.js";
+
 export const signupController = async (req, res, next) => {
     const {
         first_name,
@@ -66,7 +67,7 @@ export const loginController = async (req, res, next) => {
             throw new HttpException(401, "Invalid Credentials!");
 
         //CREATE ACCESS TOKEN AND STORE IN COOKIE
-        req.user = login.id;
+        req.user_id = login.id;
         const accessToken = jwtSign("auth", {
             id: login.id,
             email: login.email,
@@ -74,21 +75,35 @@ export const loginController = async (req, res, next) => {
         res.cookie("auth", accessToken, {
             httpOnly: true,
             secure: true,
-            maxAge: 10 * 60 * 1000,
+            maxAge: 20 * 60 * 1000,
         });
         //CREATE REFRESH TOKEN AND STORE IN DATABASE
         const refreshToken = jwtSign("refresh", {
             id: login.id,
             email: login.email,
         });
-        await RefreshToken.create({
-            user_id: login.id,
-            token: refreshToken,
-            revoked: 0,
-            created_at: currentDate(),
-            expires_at: expireIn(refreshTokenExpire),
-            updated_at: currentDate(),
+        const checkPreviousRefToken = await RefreshToken.findOne({
+            where: { user_id: login.id },
         });
+        if (!checkPreviousRefToken) {
+            await RefreshToken.create({
+                user_id: login.id,
+                token: refreshToken,
+                revoked: 0,
+                created_at: currentDate(),
+                expires_at: expireIn(refreshTokenExpire),
+                updated_at: currentDate(),
+            });
+        }
+
+        await RefreshToken.update(
+            {
+                token: refreshToken,
+                expires_at: expireIn(refreshTokenExpire),
+                updated_at: currentDate(),
+            },
+            { where: { user_id: login.id } }
+        );
 
         return res.status(200).json(
             responseHandler({

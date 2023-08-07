@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/opus": "^0.9.0",
     "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.0.0-rc.12",
@@ -25,6 +26,7 @@
     "node-cron": "^3.0.2",
     "sentiment": "^5.0.2",
     "sequelize": "^6.32.1",
+    "sequelize-cli": "^6.6.1",
     "swagger-autogen": "^2.23.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"

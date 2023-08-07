@@ -6,8 +6,6 @@ import { accessTokenExpire, refreshTokenExpire } from "./get.expirydate.js";
 /**
  * Sign a JWT token.
  * @param {'auth' | 'refresh'} use - The purpose of the token ('auth' or 'refresh').
- * @param {any} payload - The payload data to be included in the token.
- * @returns {string} The generated JWT token.
  */
 export const jwtSign = (use, payload) => {
     const tokenType = use === "refresh" ? "refresh" : "auth";
