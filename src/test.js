@@ -5,155 +5,114 @@ dotenv.config();
 const router = Router();
 import mysql from "mysql2/promise";
 import catchAsync from "./utils/catchAsync.js";
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
+    const DB_NAME = process.env.DB_NAME;
+    const DB_USER = process.env.DB_USER;
+    const DB_PASSWORD = process.env.DB_PASSWORD;
+    const DB_HOST = process.env.DB_HOST;
+    const DB_DIALECT = process.env.DB_DIALECT;
+
+    const sql = await mysql.createConnection({
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: DB_NAME,
+    });
+
     try {
-        throw new HttpException(404, "asdasd");
+        // Sample dataset of novels and their associated genres (dummy data)
+        const sample_dataset = [
+            {
+                novel_id: "The Adventure Chronicles",
+                genres: ["Adventure", "Action"],
+            },
+            { novel_id: "Mystery Mansion", genres: ["Mystery", "Thriller"] },
+            { novel_id: "Romantic Escapade", genres: ["Romance"] },
+            { novel_id: "Epic Fantasy Saga", genres: ["Fantasy"] },
+        ];
+
+        async function fetchAllNovels() {
+            const query =
+                "select nt.id as novel_id, group_concat(gnt.genre_id separator ',') as genre from novel_tbl nt left join genre_novel_tbl gnt on nt.id =gnt.novel_id group by nt.id,nt.title ;";
+            const get_novel_with_matching_genre = await sql
+                .query(query)
+                .then((res) =>
+                    res[0].map((row) => ({
+                        novel_id: row.novel_id,
+                        genre: row.genre.split(",").map((x) => Number(x)),
+                    }))
+                );
+
+            return get_novel_with_matching_genre;
+        }
+        const dataset = await fetchAllNovels();
+        async function fetch_novel_genre(novel_id) {
+            const query = `select * from genre_novel_tbl where novel_id=${novel_id} order by genre_id`;
+            const res = await sql.query(query);
+            return res[0].map((row) => row.genre_id);
+        }
+
+        // Function to calculate Euclidean distance between two sets of genres
+        function euclideanDistance(set1, set2) {
+            //set 1 is dataset genre
+            const allGenres = new Set([...set1, ...set2]);
+
+            let sum = 0;
+            for (const genre of allGenres) {
+                const presence1 = set1.has(genre) ? 1 : 0;
+                const presence2 = set2.has(genre) ? 1 : 0;
+                sum += Math.pow(presence1 - presence2, 2);
+            }
+
+            return Math.sqrt(sum);
+        }
+
+        // k-Nearest Neighbors algorithm for genre-based recommendation using Euclidean distance
+        function recommendNovelsByGenre(targetGenre, k, id) {
+            // Calculate distances from targetGenre to all data points
+            const distances = dataset
+                .filter((x) => x.novel_id !== id)
+                .map((data) => ({
+                    novel_id: data.novel_id,
+                    distance: euclideanDistance(
+                        new Set(data.genre),
+                        new Set(targetGenre)
+                    ),
+                }));
+            console.log(distances);
+            // Sort distances in ascending order
+            distances.sort((a, b) => a.distance - b.distance);
+
+            // Select the first 'k' neighbors
+            const nearestNeighbors = distances.slice(0, k);
+
+            // Return recommended novels
+            const recommendedNovels = nearestNeighbors.map(
+                (neighbor) => neighbor.novel_id
+            );
+
+            return recommendedNovels;
+        }
+
+        // Example usage
+
+        const main_novel_id = req.body.novel_id || 1;
+        const providedGenre = await fetch_novel_genre(main_novel_id); // Provided genre for the novel
+        const k = 10; // Number of neighbors to consider for recommendation
+
+        const recommendedNovels = recommendNovelsByGenre(
+            providedGenre,
+            k,
+            main_novel_id
+        );
+
+        console.log(
+            `Recommended Novels for id:${main_novel_id} = ${recommendedNovels}`
+        );
+        res.send(recommendedNovels);
     } catch (err) {
         throw err;
     }
 });
-
-const DB_NAME = process.env.DB_NAME;
-const DB_USER = process.env.DB_USER;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const DB_HOST = process.env.DB_HOST;
-const DB_DIALECT = process.env.DB_DIALECT;
-
-const sql = await mysql.createConnection({
-    host: DB_HOST,
-    user: DB_USER,
-    password: DB_PASSWORD,
-    database: DB_NAME,
-});
-try {
-    async function euclidean_distance(array1, array2) {
-        if (array1.length !== array2.length) {
-            throw new Error("Arrays must have the same length");
-        }
-        // console.log("a1:", array1, "a2:", array2);
-        let sum = 0;
-        for (let i = 0; i < array1.length; i++) {
-            sum += Math.pow(array1[i] - array2[i], 2);
-        }
-
-        // return 1 / (1 + Math.sqrt(sum));
-        return Math.sqrt(sum);
-    }
-
-    async function novel_genre_array(novel_id) {
-        const query = "select * from genre_tbl";
-        const genre = await sql.query(query).then((res) => {
-            return res[0].map((row) => {
-                return row.id;
-            });
-        });
-
-        const query2 = `select * from genre_novel_tbl where novel_id=${novel_id} order by genre_id`;
-        const novel_genre = await sql.query(query2).then((res) =>
-            res[0].map((row) => {
-                return row.genre_id;
-            })
-        );
-
-        return genre?.map((item) => {
-            return novel_genre.indexOf(item) !== -1 ? 1 : 0;
-        });
-    }
-
-    async function convert_into_vector(array) {
-        const query = "select * from genre_tbl";
-        const genre = await sql.query(query).then((res) => {
-            return res[0].map((row) => {
-                return row.id;
-            });
-        });
-        return genre?.map((item) => {
-            return array.indexOf(item) !== -1 ? 1 : 0;
-        });
-    }
-
-    async function novel_distances_with_matching_genre(novel_id) {
-        const main_genre = await novel_genre_array(6);
-        convert_into_vector(main_genre).then((res) => console.log(res));
-        const query =
-            "select nt.id as novel_id, group_concat(gnt.genre_id separator ',') as genre from novel_tbl nt left join genre_novel_tbl gnt on nt.id =gnt.novel_id group by nt.id,nt.title ;";
-        const get_novel_with_matching_genre = await sql.query(query).then(
-            (
-                res //{novel_id:1,genre:[33,1]}
-            ) =>
-                res[0].map((row) => {
-                    return {
-                        novel_id: row.novel_id,
-                        genre: row.genre.split(",").map((x) => {
-                            return Number(x);
-                        }),
-                    };
-                })
-        );
-        const matching = [];
-        // console.log(get_novel_with_matching_genre);
-        const convert = await Promise.all(
-            get_novel_with_matching_genre.map(async (x) => {
-                for (const num of x.genre) {
-                    if (main_genre.indexOf(num) >= 0) {
-                        const genresVector = await convert_into_vector(x.genre);
-                        matching.push({
-                            novel_id: x.novel_id,
-                            genre: genresVector,
-                        });
-                    }
-                }
-            })
-        );
-        return matching;
-
-        const distance = [];
-        // const array = await Promise.all(
-        //     get_novel_with_matching_genre.map(async (item) => {
-        //         // if (item.novel_id === 1) return;
-        //         if (
-        //             item.genre.every((item) => main_genre.includes(item)) &&
-        //             item.genre.length === main_genre.length
-        //         )
-        //             return;
-        //         const euc_distance = await euclidean_distance(
-        //             main_genre,
-        //             await novel_genre_array(item.novel_id)
-        //         );
-        //         const obj = {
-        //             novel_id: item.novel_id,
-        //             distance: Math.floor(euc_distance * 100) / 100,
-        //             // distance: euc_distance ,
-        //         };
-        //         distance.push(obj);
-
-        //         return distance;
-        //     })
-        // );
-
-        // return convert_genre_into_vector;
-    }
-    novel_distances_with_matching_genre().then((res) => {
-        // console.log(res);
-        res.forEach((x) => console.log(x.novel_id));
-    });
-    // const z = await get_novels_with_mathcing_genre();
-    // z.sort((a, b) => {
-    //     return b.distance - a.distance;
-    // });
-    // const filtered = z.filter(function (currentValue, index) {
-    //     return index < 10;
-    // });
-
-    // const test = b.filter((x) => {
-    //     return x.genre.some((z) => {
-    //         if (a.indexOf(z) >= 0) {
-    //             return { id: z.id, genre: z.genre };
-    //         }
-    //     });
-    // });
-} catch (err) {
-    throw err;
-}
 
 export default router;
