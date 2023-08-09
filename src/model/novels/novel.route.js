@@ -14,4 +14,6 @@ router.get("/:novelTitle/chapter-:number", novelController.getChapterData);
 
 router.get("/:novelTitle/:pageIndex?", novelController.getNovelWithTitle);
 
+router.post("/knn", novelController.getKnnRecommendationData);
+
 export default router;

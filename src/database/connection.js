@@ -9,14 +9,23 @@ const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_HOST = process.env.DB_HOST;
 const DB_DIALECT = process.env.DB_DIALECT;
 
-try {
-    const mysqlConnect = await mysql.createConnection({
-        host: DB_HOST,
-        user: DB_USER,
-        password: DB_PASSWORD,
-    });
+export const sqlConnection = async (db) => {
+    const mysqlConnect = await mysql
+        .createConnection({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            database: db || "",
+        })
+        .catch((err) => {
+            throw err;
+        });
+    return mysqlConnect;
+};
 
-    await mysqlConnect.query(`CREATE DATABASE IF NOT EXISTS ${DB_NAME}`);
+try {
+    const mysql = await sqlConnection();
+    mysql.query(`CREATE DATABASE IF NOT EXISTS ${DB_NAME}`);
 } catch (err) {
     throw err;
 }

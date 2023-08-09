@@ -1,5 +1,5 @@
 import * as novelService from "./novel.service.js";
-
+import catchAsync from "../../utils/catchAsync.js";
 export const getMostPopularNovelsData = async (req, res, next) => {
     try {
         const data = await novelService.mostPopularNovelsUrlData;
@@ -55,6 +55,17 @@ export const getChapterData = async (req, res, next) => {
             parseInt(req.params.number)
         );
         // console.log("chapter data:", data.length);
+        return res.json({ success: true, data });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getKnnRecommendationData = async (req, res, next) => {
+    try {
+        const data = await novelService.getKnnRecommendation(
+            req.body?.novel_id
+        );
         return res.json({ success: true, data });
     } catch (err) {
         next(err);

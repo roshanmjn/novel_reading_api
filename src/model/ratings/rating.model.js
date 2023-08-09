@@ -1,7 +1,7 @@
 import { sequelize } from "../../database/connection.js";
 import { DataTypes } from "sequelize";
 
-export const Rating = sequelize.define("rating_rbl", {
+export const Rating = sequelize.define("rating_tbl", {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
