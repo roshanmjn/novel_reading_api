@@ -1,8 +1,8 @@
-import * as novelService from "./novel.service.js";
-import catchAsync from "../../utils/catchAsync.js";
-export const getMostPopularNovelsData = async (req, res, next) => {
+import * as novelService from "./scrape.novel.service.js";
+
+export const scrapeGetMostPopularNovelsData = async (req, res, next) => {
     try {
-        const data = await novelService.mostPopularNovelsUrlData();
+        const data = await novelService.scrapeMostPopularNovelsUrlData();
 
         return res.json(data);
     } catch (err) {
@@ -10,9 +10,10 @@ export const getMostPopularNovelsData = async (req, res, next) => {
     }
 };
 
-export const getNovelWithTitle = async (req, res, next) => {
+export const scrapeGetNovelWithTitle = async (req, res, next) => {
     try {
-        const data = await novelService.getNovelWithTitle(
+        const data = await novelService.scrapeGetGenreTitles(
+            //getNovelWithTitle(
             req.params.novelTitle,
             parseInt(req.params.pageIndex?.split(".")[0])
         );
@@ -24,16 +25,16 @@ export const getNovelWithTitle = async (req, res, next) => {
         next(err);
     }
 };
-export const getGenreData = async (req, res, next) => {
+export const scrapeGetGenreData = async (req, res, next) => {
     try {
-        const data = await novelService.getAllGenres;
+        const data = await novelService.scrapeGetAllGenres(); //getAllGenres;
         // console.log(data);
         return res.json(data);
     } catch (err) {
         next(err);
     }
 };
-export const getGenreWithTitle = async (req, res, next) => {
+export const scrapeGetGenreWithTitle = async (req, res, next) => {
     try {
         const data = await novelService.getGenreTitles(
             req.params.genreTitle,
@@ -47,26 +48,15 @@ export const getGenreWithTitle = async (req, res, next) => {
     }
 };
 
-export const getChapterData = async (req, res, next) => {
+export const scrapeGetChapterData = async (req, res, next) => {
     try {
         // console.log(req.params);
-        const data = await novelService.getChapter(
+        const data = await novelService.scrapeGetChapter(
+            //getChapter(
             req.params.novelTitle,
             parseInt(req.params.number)
         );
         // console.log("chapter data:", data.length);
-        return res.json(data);
-    } catch (err) {
-        next(err);
-    }
-};
-
-export const getKnnRecommendationData = async (req, res, next) => {
-    try {
-        const data = await novelService.getKnnRecommendation(
-            req.body?.novel_id,
-            req.body?.title
-        );
         return res.json({ success: true, data });
     } catch (err) {
         next(err);

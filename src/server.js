@@ -14,12 +14,13 @@ const swaggerDocs = require("./swagger_output.json");
 import corn from "node-cron";
 import cookieParser from "cookie-parser";
 import test from "./test.js";
+
 const app = express();
 const port = 5999;
 const host = "localhost";
 dotenv.config();
 let corsOptions = {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:5173"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     "Access-Control-Allow-Headers": "*",
     "Access-Control-Allow-Origin": "*",

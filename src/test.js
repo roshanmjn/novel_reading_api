@@ -239,7 +239,7 @@ function recommendNovelsByUser(userId, k) {
 const targetUserId = 5; // Target user for recommendation
 const k = 10; // Number of neighbors to consider for recommendation
 
-const recommendedNovels = recommendNovelsByUser(targetUserId, k);
-console.log(`Recommended Novel IDs: ${recommendedNovels.join(", ")}`);
+// const recommendedNovels = recommendNovelsByUser(targetUserId, k);
+// console.log(`Recommended Novel IDs: ${recommendedNovels.join(", ")}`);
 
 export default router;

@@ -24,6 +24,10 @@ export const Novel = sequelize.define("novel_tbl", {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    url_parameter: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
     description: {
         type: DataTypes.STRING,
         allowNull: true,

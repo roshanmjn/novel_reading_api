@@ -2,14 +2,14 @@ import { Genre } from "./genre.model.js";
 import { Novel } from "../novels/novel.model.js";
 import { Genre_Novel } from "../genre_novel/genre_novel.model.js";
 import {
-    getAllGenres,
-    mostPopularNovelsUrlData,
-} from "../novels/novel.service.js";
+    scrapeMostPopularNovelsUrlData,
+    scrapeGetAllGenres,
+} from "../novels/scraping/scrape.novel.service.js";
 
 export const scrapeAndUpdate = async () => {
     console.log("Scraping Started");
     try {
-        const genres = await getAllGenres;
+        const genres = await scrapeGetAllGenres();
         genres.map(async (data, idx) => {
             const [found, created] = await Genre.findOrCreate({
                 where: { title: data.title },
@@ -34,7 +34,7 @@ export const scrapeAndUpdate = async () => {
     }
 
     try {
-        const novels = await mostPopularNovelsUrlData;
+        const novels = await scrapeMostPopularNovelsUrlData();
         novels.map(async (data, idx) => {
             const findNovelInDB = await Novel.findOne({
                 where: { title: data.title },
@@ -44,6 +44,7 @@ export const scrapeAndUpdate = async () => {
                 const create = await Novel.create({
                     title: data.title,
                     chapters: data.chapters,
+                    url_parameter: data.url_parameter,
                     status: "ongoing",
                     active: 1,
                     image_link: data.img_link,
@@ -64,14 +65,16 @@ export const scrapeAndUpdate = async () => {
 
             if (
                 findNovelInDB &&
-                findNovelInDB.chapters !== Number(data.chapters)
+                //findNovelInDB.chapters !== Number(data.chapters) &&
+                findNovelInDB.url_parameter !== data.url_parameter
             ) {
                 console.log(
-                    ` UPDATED::${data.title}::${data.chapters}::${findNovelInDB.chapters}`
+                    ` UPDATED_NOVEL::${data.title}::${data.chapters}::${findNovelInDB.chapters}`
                 );
                 const update = await Novel.update(
                     {
                         chapters: data.chapters,
+                        url_parameter: data.url_parameter,
                         updated_at: Date.now(),
                     },
                     { where: { title: data.title } }

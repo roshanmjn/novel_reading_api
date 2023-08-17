@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { novelController } from "../../controller/index.js";
+import { genreController } from "../../controller/index.js";
 const router = Router();
 
 router.use("/", (req, res, next) => {
@@ -8,7 +8,7 @@ router.use("/", (req, res, next) => {
 });
 
 //FOR GENRE
-router.get("/", novelController.getGenreData);
-router.get("/:genreTitle/:pageIndex?", novelController.getGenreWithTitle);
+router.get("/", genreController.getGenreData);
+router.get("/:genreTitle/:pageIndex?", genreController.getGenreWithTitle);
 
 export default router;
