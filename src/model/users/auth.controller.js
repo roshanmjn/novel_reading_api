@@ -73,9 +73,9 @@ export const loginController = async (req, res, next) => {
             email: login.email,
         });
         res.cookie("auth", accessToken, {
-            httpOnly: true,
-            secure: true,
-            maxAge: 20 * 60 * 1000,
+            httpOnly: false,
+            secure: false,
+            maxAge: 5 * 60 * 60 * 1000,
         });
         //CREATE REFRESH TOKEN AND STORE IN DATABASE
         const refreshToken = jwtSign("refresh", {
@@ -94,16 +94,16 @@ export const loginController = async (req, res, next) => {
                 expires_at: expireIn(refreshTokenExpire),
                 updated_at: currentDate(),
             });
+        } else {
+            await RefreshToken.update(
+                {
+                    token: refreshToken,
+                    expires_at: expireIn(refreshTokenExpire),
+                    updated_at: currentDate(),
+                },
+                { where: { user_id: login.id } }
+            );
         }
-
-        await RefreshToken.update(
-            {
-                token: refreshToken,
-                expires_at: expireIn(refreshTokenExpire),
-                updated_at: currentDate(),
-            },
-            { where: { user_id: login.id } }
-        );
 
         return res.status(200).json(
             responseHandler({
@@ -115,6 +115,26 @@ export const loginController = async (req, res, next) => {
                 active: login.active,
                 access_token: accessToken,
                 refreshToken,
+            })
+        );
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const logoutController = async (req, res, next) => {
+    const userId = req.body?.user_id; // Assuming you have the user's ID stored in the request
+
+    try {
+        // Delete the user's refresh token from the database
+        await RefreshToken.destroy({ where: { user_id: userId } });
+
+        // Clear the access token cookie
+        res.clearCookie("auth");
+
+        return res.status(200).json(
+            responseHandler({
+                message: "Logout successful",
             })
         );
     } catch (err) {

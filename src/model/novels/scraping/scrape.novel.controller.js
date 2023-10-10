@@ -2,6 +2,7 @@ import * as novelService from "./scrape.novel.service.js";
 
 export const scrapeGetMostPopularNovelsData = async (req, res, next) => {
     try {
+        console.log("scrape controller Mostpop");
         const data = await novelService.scrapeMostPopularNovelsUrlData();
 
         return res.json(data);

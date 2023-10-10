@@ -54,6 +54,8 @@ export const getGenreTitles = async (genre_title, page_index = 1) => {
     let latest_chapter_url = "";
     let title = "";
     let latest_chapter_number = "";
+    let image_link = "";
+    let url_parameter = "";
     const chaptersArray = [];
     const results = {};
 
@@ -69,8 +71,9 @@ export const getGenreTitles = async (genre_title, page_index = 1) => {
                 $(".row-box .col-content .ul-list1.ul-list1-2.ss-custom ").each(
                     (i, items) => {
                         $(items)
-                            .find(".con .txt ")
+                            .find(".con  ")
                             .each((i, x) => {
+                                // console.log($(x).html());
                                 //FETCH TITLE:
                                 $(x)
                                     .find(".tit a")
@@ -86,6 +89,11 @@ export const getGenreTitles = async (genre_title, page_index = 1) => {
                                         genre.push($(z).text());
                                     });
 
+                                //TO FIND IMAGE:
+                                const image_link = $(x)
+                                    .find(".pic a img")
+                                    .attr("src");
+
                                 //TO FETCH NOVEL LASTEST CHAPTER URL:
                                 $(x)
                                     .find(".desc div:nth-child(3) .right a")
@@ -94,19 +102,31 @@ export const getGenreTitles = async (genre_title, page_index = 1) => {
                                             (latest_chapter_url =
                                                 $(za).attr("href"))
                                     );
+                                //TO  URL parameter:
+                                $(x)
+                                    .find(".desc div:nth-child(3) .right a")
+                                    .map(
+                                        (i, za) =>
+                                            (url_parameter = $(za)
+                                                .attr("href")
+                                                .split("/")[1])
+                                    );
 
                                 // TO FETCH LATEST NOVEL CHAPTER NUMBER:
                                 $(x)
                                     .find(".right a span ")
                                     .each(
                                         (i, x) =>
-                                            (latest_chapter_number =
-                                                $(x).text())
+                                            (latest_chapter_number = Number(
+                                                $(x).text().split(" ")[0]
+                                            ))
                                     );
 
                                 chaptersArray.push({
                                     title,
                                     genre,
+                                    image_link,
+                                    url_parameter,
                                     latest_chapter_url,
                                     latest_chapter_number,
                                 });
@@ -131,5 +151,7 @@ export const getGenreTitles = async (genre_title, page_index = 1) => {
             results.previous = { page: parseInt(lastPage) - 1, limit: limit };
     }
     results.results = chaptersArray;
+    results.last_page = lastPage;
+    results.current_page = startPageIndex;
     return results;
 };

@@ -32,8 +32,8 @@ export const refreshTokenVerification = async (req, res, next) => {
             email: result.email,
         });
         res.cookie("auth", newAccessToken, {
-            httpOnly: true,
-            secure: true,
+            httpOnly: false,
+            secure: false,
             maxAge: 10 * 24 * 60 * 60 * 1000,
         });
         return res.status(200).json({

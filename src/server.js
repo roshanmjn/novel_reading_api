@@ -21,6 +21,7 @@ const host = "localhost";
 dotenv.config();
 let corsOptions = {
     origin: ["http://localhost:3000", "http://localhost:5173"],
+    credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     "Access-Control-Allow-Headers": "*",
     "Access-Control-Allow-Origin": "*",
@@ -45,11 +46,15 @@ app.listen(port, host, async () => {
         await sequelize.authenticate();
         await syncModels();
 
-        const minutes = 5;
-        // corn.schedule(`*/${minutes} * * * *`, async () => {
-        //     console.log(`CRON JOB RUNNING AT ${minutes} MINUTES INTERVAL`);
-        //     await scrapeAndUpdate();
-        // });
+        const minutes = 10;
+        // await scrapeAndUpdate();
+        //    corn.schedule(
+        //         `*/${minutes} * * * *`,
+        //         async () => {
+        //             console.log(`CRON JOB RUNNING AT ${minutes} MINUTES INTERVAL`);
+        //             await scrapeAndUpdate();
+        //         }
+        //     );
     } catch (err) {
         throw err;
     }

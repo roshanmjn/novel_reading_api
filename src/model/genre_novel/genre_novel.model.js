@@ -31,6 +31,16 @@ export const Genre_Novel = sequelize.define(
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
         },
+        url_parameter: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            references: {
+                model: Novel,
+                key: "url_parameter",
+            },
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        },
     },
     {
         timestamps: false,

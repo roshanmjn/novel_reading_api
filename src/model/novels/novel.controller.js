@@ -63,9 +63,20 @@ export const getChapterData = async (req, res, next) => {
 
 export const getKnnRecommendationData = async (req, res, next) => {
     try {
+        //required parameters are: Genre Array and Novel url_parameter
         const data = await novelService.getKnnRecommendation(
-            req.body?.novel_id,
-            req.body?.title
+            req.body?.genre,
+            req.body?.novel_title
+        );
+        return res.json({ success: true, data });
+    } catch (err) {
+        next(err);
+    }
+};
+export const getRatingRecommendationData = async (req, res, next) => {
+    try {
+        const data = await novelService.getRatingRecommendation(
+            Number(req.body?.user_id)
         );
         return res.json({ success: true, data });
     } catch (err) {

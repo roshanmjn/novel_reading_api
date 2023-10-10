@@ -27,6 +27,9 @@ export const scrapeGetAuthor = async (novel_title) => {
     const url = `https://freewebnovel.com/${title}.html`;
     console.log(url);
     let path = ".txt span[title='Author']";
+    let genrePath = ".txt span[title='Genre']";
+    let descPath = "div.m-desc > div.txt";
+
     const res = await getData(url);
     const $ = load(res);
     let author =
@@ -35,17 +38,23 @@ export const scrapeGetAuthor = async (novel_title) => {
             .text()
             .split(",")
             .map((x) => x.trim()) || [];
+    let genre =
+        $(genrePath)
+            .next(".right")
+            .text()
+            .split(",")
+            .map((x) => x.trim()) || [];
+    let description = $(descPath).text();
 
-    return author;
+    return { genre, author, description };
 };
 
 const novelData = [];
-
-export const scrapeMostPopularNovelsUrlData = async () =>
-    getData(mostPopularNovelsUrl)
+export const scrapeMostPopularNovelsUrlData = async () => {
+    const paramerters = await getData(mostPopularNovelsUrl)
         .then(async (res) => {
             const $ = load(res);
-
+            // console.log($.text());
             // FUNCTION TO FETCH EACH ROW OF NOVEL LIST
             $(".ul-list1.ul-list1-2.ss-custom>.li-row").map(
                 async (i, novel) => {
@@ -54,7 +63,6 @@ export const scrapeMostPopularNovelsUrlData = async () =>
                         .attr("href")
                         .split(".")[0]
                         .split("/")[1];
-
                     const name = $(novel).find(".tit a").text();
                     const img_link = $(novel).find(".pic img").attr("src");
                     const link = $(novel).find(".tit a").attr("href");
@@ -73,7 +81,6 @@ export const scrapeMostPopularNovelsUrlData = async () =>
                     const obj = {
                         id: i,
                         title: name,
-                        genre,
                         url_parameter,
                         chapters,
                         img_link,
@@ -89,6 +96,29 @@ export const scrapeMostPopularNovelsUrlData = async () =>
         .catch((err) => {
             throw err;
         });
+
+    // const sliced = paramerters.slice(0, 1);
+    // for (let prop of sliced) {
+    //     console.log(await scrapeGetAuthor(prop.url_parameter));
+    // }
+    const newArray = [];
+    for (let prop of paramerters) {
+        // console.log("id:", prop.id, await scrapeGetAuthor(prop.url_parameter));
+        const id = prop.id;
+        const { genre, author, description } = await scrapeGetAuthor(
+            prop.url_parameter
+        );
+        const obj = { id, genre, author, description };
+        newArray.push(obj);
+    }
+
+    // Merge the paramerters array with newArray data
+    const mergedArray = paramerters.map((x) => ({
+        ...x,
+        ...newArray.find((item) => item.id === x.id),
+    }));
+    return mergedArray;
+};
 
 export const scrapeGetNovelWithTitle = async (novel_title, page_index) => {
     // novel_title = "keyboard-immortal-novel";

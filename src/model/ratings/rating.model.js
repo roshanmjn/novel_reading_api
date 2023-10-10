@@ -13,7 +13,11 @@ export const Rating = sequelize.define("rating_tbl", {
     },
     novel_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
+    },
+    novel_title: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     rating: {
         type: DataTypes.INTEGER,

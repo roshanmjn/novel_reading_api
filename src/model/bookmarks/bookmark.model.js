@@ -24,6 +24,14 @@ export const Bookmark = sequelize.define("bookmark_tbl", {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
     },
+    novel_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    novel_title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     created_at: {
         type: DataTypes.DATE,
         allowNull: false,

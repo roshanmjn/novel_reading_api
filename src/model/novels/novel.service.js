@@ -86,7 +86,7 @@ export const getNovelWithTitle = async (novel_title, page_index) => {
         $(items)
             .find(".m-book1 > div")
             .each((_, x) => {
-                console.log($(x).html());
+                // console.log($(x).html());
                 // FETCH AUTHOR NAME:
                 $(x)
                     .find(".m-imgtxt .txt div:nth-child(2) .right a")
@@ -186,8 +186,11 @@ export const getNovelWithTitle = async (novel_title, page_index) => {
         } else
             results.previous = { page: parseInt(lastPage) - 1, limit: limit };
     }
+    results.current_page = pageIndex;
+    results.last_page = lastPage;
     results.title = title;
     results.url = `/${novel_title}.html`;
+    results.url_parameter = `${novel_title}`;
     results.status = status;
     results.genre = genre;
     results.author = author;
@@ -207,6 +210,23 @@ export const getChapter = async (novel_title, ch_no) => {
     console.log("get_novel_chapter:", url);
     const res = await getData(url);
     const $ = load(res);
+
+    const scrape_novel_title = $("#main1 > div > div > div.top .tit a").text();
+
+    ///////////////////////////////////////////////////////////////////////
+    /////* USING TWO CHAPTER_TITLE AS IN NEW UPLOADED NOVELS  *////////////
+    /////* THE DIV ELEMENT POSITION CHANGED                   *////////////
+    ///////////////////////////////////////////////////////////////////////
+    const chapter_title1 = $(
+        "#main1 > div > div > div.txt #article > h4"
+    ).text();
+    const chapter_title2 = $("#main1 > div > div > div.top .chapter").text();
+
+    const chapter_title = chapter_title1
+        ? chapter_title1
+        : chapter_title2
+        ? chapter_title2
+        : "";
 
     let chapter = "";
     const prev_selector = $(
@@ -238,143 +258,215 @@ export const getChapter = async (novel_title, ch_no) => {
                 "Chapter content is missing or does not exist! Please try again later!",
         };
     }
-    return { success: true, next, previous, chapter };
+    return {
+        success: true,
+        next,
+        previous,
+        chapter,
+        chapter_title,
+        novel_title: scrape_novel_title,
+    };
 };
 
 //RECOMMENDATIONS
-export const getKnnRecommendation = async (novel_id, title = "") => {
-    try {
-        // Sample dataset of novels and their associated genres (dummy data)
-        const is_array = novel_id && Array.isArray(novel_id);
+export const getKnnRecommendation = async (genre, novel_title = null) => {
+    const novel = await sql.query(
+        "select nt.id,nt.title, group_concat(gt.title  separator ',') as genre, nt.url_parameter,nt.chapters,nt.image_link,nt.link from novel_tbl nt left join genre_novel_tbl gnt on nt.id =gnt.novel_id left join genre_tbl gt on gt.id =gnt.genre_id group by nt.id,nt.title;"
+    );
+    const novels = novel[0];
 
-        const sample_dataset = [
-            { novel_id: "Mystery Mansion", genres: ["Mystery", "Thriller"] },
-        ];
+    const dataset = {};
+    const filterd = novels.map(
+        (novel) =>
+            (dataset[novel.url_parameter] = novel.genre
+                .split(",")
+                .map((x) => x.trim()))
+    );
+    function getSimilarNovelsByGenres(
+        dataset,
+        targetGenres,
+        excludeNovel = null
+    ) {
+        const recommendedNovels = [];
 
-        async function fetchAllNovels() {
-            // const query =
-            //     "select nt.id as novel_id, group_concat(gnt.genre_id separator ',') as genre from novel_tbl nt left join genre_novel_tbl gnt on nt.id =gnt.novel_id group by nt.id,nt.title ;";
-            const query =
-                "select nt.id as novel_id,nt.title,nt.chapters ,nt.image_link ,nt.url_parameter, group_concat(gt.title  separator ',') as genre from novel_tbl nt left join genre_novel_tbl gnt on nt.id =gnt.novel_id left join genre_tbl gt on gt.id =gnt.genre_id group by nt.id;";
-            const get_novel_with_matching_genre = await sql
-                .query(query)
-                .then((res) =>
-                    res[0].map((row) => ({
-                        // genre: row.genre.split(",").map((x) => Number(x)),
-                        novel_id: row.novel_id,
-                        title: row.title,
-                        chapters: row.chapters,
-                        image_link: row.image_link,
-                        url_parameter: row.url_parameter,
-                        genre: row.genre.split(",").map((x) => x.trim()),
-                    }))
+        for (const novel in dataset) {
+            if (novel !== excludeNovel) {
+                const sharedGenres = dataset[novel].filter((genre) =>
+                    targetGenres?.includes(genre)
+                );
+                if (sharedGenres.length > 0) {
+                    const similarityRate =
+                        sharedGenres.length / targetGenres.length;
+                    recommendedNovels.push({
+                        novel_title: novel,
+                        similarityRate,
+                    });
+                }
+            }
+        }
+
+        return recommendedNovels.sort(
+            (a, b) => b.similarityRate - a.similarityRate
+        );
+    }
+
+    const targetGenres = genre;
+    const excludeNovel = novel_title;
+    const similarNovels = getSimilarNovelsByGenres(
+        dataset,
+        targetGenres,
+        excludeNovel
+    );
+
+    // Filter Dataset With Only Recommended Novels Remaining
+    // Then Merge The Recommendednovels Array With Filtered Dataset
+    const filteredDataset = novels.filter((obj) =>
+        similarNovels?.some((item) => item.novel_title === obj.url_parameter)
+    );
+    const mergedArray = filteredDataset.map((obj) => ({
+        ...obj,
+        ...similarNovels.find((item) => item.novel_title === obj.url_parameter),
+    }));
+    mergedArray.sort((a, b) => b.similarityRate - a.similarityRate);
+
+    return mergedArray;
+};
+
+export const getRatingRecommendation = async (userId) => {
+    async function fetchAllNovels() {
+        const query =
+            "select nt.title,nt.chapters ,nt.image_link ,nt.url_parameter, group_concat(gt.title  separator ',') as genre from novel_tbl nt left join genre_novel_tbl gnt on nt.id =gnt.novel_id left join genre_tbl gt on gt.id =gnt.genre_id group by nt.id;";
+        const get_all_novels = await sql.query(query).then((res) =>
+            res[0].map((row) => ({
+                novel_title: row.title,
+                chapters: row.chapters,
+                image_link: row.image_link,
+                url_parameter: row.url_parameter,
+                genre: row.genre.split(",").map((x) => x.trim()),
+            }))
+        );
+
+        return get_all_novels;
+    }
+    const allNovels = await fetchAllNovels();
+
+    async function fetchNovelRatings() {
+        const query1 = "select * from user_tbl";
+        const query2 = "select * from rating_tbl rt where  user_id =?";
+
+        try {
+            const [rows1] = await sql.execute(query1);
+            const userAndRatings = {};
+            for (const row of rows1) {
+                const [rows2] = await sql.execute(query2, [row.id]);
+                const obj = {};
+                for (const row2 of rows2) {
+                    obj[row2.novel_title] = row2.rating;
+                }
+                const uid = Number(row.id);
+                userAndRatings[uid] = obj;
+            }
+
+            return userAndRatings;
+        } catch (error) {
+            console.error("Error:", error);
+        }
+        t;
+    }
+
+    const dataset = await fetchNovelRatings();
+
+    function similarityDistance(preferences, person1, person2) {
+        const similar = {};
+        let sum = 0;
+
+        for (const key in preferences[person1]) {
+            if (preferences[person2].hasOwnProperty(key)) {
+                similar[key] = 1;
+            }
+        }
+
+        if (Object.keys(similar).length === 0) {
+            return 0;
+        }
+
+        for (const key in preferences[person1]) {
+            if (preferences[person2].hasOwnProperty(key)) {
+                sum += Math.pow(
+                    preferences[person1][key] - preferences[person2][key],
+                    2
+                );
+            }
+        }
+
+        return 1 / (1 + Math.sqrt(sum));
+    }
+
+    function getRecommendations(preferences, person) {
+        const total = {};
+        const simSums = {};
+        const ranks = {};
+        let sim = 0;
+
+        for (const otherPerson in preferences) {
+            if (otherPerson !== person) {
+                sim = similarityDistance(preferences, person, otherPerson);
+            }
+
+            if (sim > 0) {
+                for (const key in preferences[otherPerson]) {
+                    if (!preferences[person].hasOwnProperty(key)) {
+                        if (!total.hasOwnProperty(key)) {
+                            total[key] = 0;
+                        }
+
+                        total[key] += preferences[otherPerson][key] * sim;
+
+                        if (!simSums.hasOwnProperty(key)) {
+                            simSums[key] = 0;
+                        }
+                        simSums[key] += sim;
+                    }
+                }
+            }
+        }
+
+        for (const key in total) {
+            ranks[key] = total[key] / simSums[key];
+        }
+        const sortedRecommendArray = Object.entries(ranks).map(
+            ([novel_title, similarity]) => ({
+                novel_title,
+                similarity,
+            })
+        );
+
+        sortedRecommendArray.sort((a, b) => b.similarity - a.similarity);
+        // console.log(sortedRecommendArray);
+        // return sortedRecommendArray;
+
+        const mergedNovels = sortedRecommendArray
+            .map((recommendedNovel) => {
+                const matchingNovel = allNovels.find(
+                    (novel) =>
+                        novel.url_parameter === recommendedNovel.novel_title
                 );
 
-            return get_novel_with_matching_genre;
-        }
+                if (matchingNovel) {
+                    return {
+                        ...matchingNovel,
+                        similarity: recommendedNovel.similarity,
+                    };
+                }
 
-        const dataset = await fetchAllNovels();
+                return null;
+            })
+            .filter((novel) => novel !== null);
 
-        async function fetch_novel_genre(novel_id, title) {
-            // const query = `select * from genre_novel_tbl where novel_id=${novel_id} order by genre_id`;
-            const query = `select gnt.novel_id ,gt.title as genre_title from genre_novel_tbl gnt left join genre_tbl gt on gnt.genre_id  =gt.id where novel_id=${novel_id} order by genre_id;`;
-            const res = await sql.query(query);
-            // return res[0].map((row) => row.genre_id);
-            return res[0].map((row) => row.genre_title);
-        }
-
-        // Function to calculate Euclidean distance between two sets of genres
-        function euclideanDistance(set1, set2) {
-            //set 1 is dataset genre
-            const allGenres = new Set([...set1, ...set2]);
-
-            let sum = 0;
-            for (const genre of allGenres) {
-                const presence1 = set1.has(genre) ? 1 : 0;
-                const presence2 = set2.has(genre) ? 1 : 0;
-                sum += Math.pow(presence1 - presence2, 2);
-            }
-
-            const t = Math.sqrt(sum);
-            return 1 / (1 + t);
-        }
-
-        // k-Nearest Neighbors algorithm for genre-based recommendation using Euclidean distance
-        function recommendNovelsByGenre(targetGenre, k, id) {
-            // Calculate distances from targetGenre to all data points
-            let distances = [];
-            if (!is_array) {
-                distances = dataset
-                    .filter((x) => x.novel_id !== id)
-                    .map((data) => ({
-                        novel_id: data.novel_id,
-                        distance: euclideanDistance(
-                            new Set(data.genre),
-                            new Set(targetGenre)
-                        ),
-                    }));
-            }
-            if (is_array) {
-                distances = dataset
-                    .filter((x) => x.url_parameter !== id)
-                    .map((data) => {
-                        // console.log(data);
-                        return {
-                            novel_id: data.novel_id,
-                            distance: euclideanDistance(
-                                new Set(data.genre),
-                                new Set(targetGenre)
-                            ),
-                        };
-                    });
-            }
-
-            // Sort distances in ascending order
-            distances.sort((a, b) => b.distance - a.distance);
-            // console.log(distances);
-
-            // Select the first 'k' neighbors
-            const nearestNeighbors = distances.slice(0, k);
-
-            // Return recommended novels
-            const recommendedNovels = nearestNeighbors.map((neighbor) => {
-                // console.log(neighbor);
-                return neighbor;
-            });
-
-            return recommendedNovels;
-        }
-
-        // USAGE
-        const k = 10; // Number of neighbors to consider for recommendation
-        let recommendedNovels;
-        if (!is_array) {
-            const main_novel_id = novel_id || 1;
-            const providedGenre = await fetch_novel_genre(main_novel_id, title); // Provided genre for the novel
-
-            recommendedNovels = recommendNovelsByGenre(
-                providedGenre,
-                k,
-                main_novel_id
-            );
-        }
-        if (is_array) {
-            const providedGenre = novel_id; // Provided genre array for the novel
-            recommendedNovels = recommendNovelsByGenre(providedGenre, k, title);
-        }
-
-        // Filter Dataset With Only Recommended Novels Remaining
-        // Then Merge The Recommendednovels Array With Filtered Dataset
-        const filteredDataset = dataset.filter((obj) =>
-            recommendedNovels?.some((item) => item.novel_id === obj.novel_id)
-        );
-        const mergedArray = filteredDataset.map((obj) => ({
-            ...obj,
-            ...recommendedNovels.find((item) => item.novel_id === obj.novel_id),
-        }));
-        mergedArray.sort((a, b) => b.distance - a.distance);
-        return mergedArray;
-    } catch (err) {
-        throw err;
+        return mergedNovels;
     }
+
+    const user = String(userId);
+    const recommendedItems = getRecommendations(dataset, user);
+    return recommendedItems;
 };
