@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 const swaggerDocs = require("./swagger_output.json");
 import corn from "node-cron";
 import cookieParser from "cookie-parser";
-import test from "./test.js";
+
 
 const app = express();
 const port = 5999;
@@ -34,7 +34,6 @@ app.use(cookieParser());
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use("/api", routes);
-app.use("/test", test);
 app.all("*", () => {
     throw new NotFound("Page not found!");
 });
