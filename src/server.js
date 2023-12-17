@@ -13,7 +13,6 @@ const require = createRequire(import.meta.url);
 const swaggerDocs = require("./swagger_output.json");
 // import corn from "node-cron";
 import cookieParser from "cookie-parser";
-// import test from "./test.js";
 
 const app = express();
 const port = 5999;
@@ -43,32 +42,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api", routes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-// app.get("/:id", (req, res) => {
-//     const param = Number(req.params.id);
-//     let sum = 0;
-//     let current = 1;
-//     const chunkSize = 1000; // Adjust the chunk size as needed
-
-//     function performChunkSum() {
-//         const end = Math.min(current + chunkSize, param + 1);
-//         for (; current < end; current++) {
-//             sum += current;
-//         }
-//         console.log(sum);
-//         if (current <= param) {
-//             // Schedule the next chunk to be processed asynchronously
-//             setImmediate(performChunkSum);
-//         } else {
-//             // All chunks processed, send the result
-//             res.json({ ress: sum });
-//         }
-//     }
-
-//     // Start processing the chunks asynchronously
-//     performChunkSum();
-// });
-
+app.use("/api", routes);
 app.all("*", () => {
     throw new NotFound("Page not found!");
 });

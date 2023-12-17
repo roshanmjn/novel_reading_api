@@ -1,1 +1,1 @@
-# novelreader
+# novel reader application API
