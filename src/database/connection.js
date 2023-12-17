@@ -30,6 +30,22 @@ try {
     throw err;
 }
 
+async function pingDB() {
+    try {
+        const mysql = await sqlConnection();
+        const [rows] = await mysql.query("SELECT 1 + 1 AS solution");
+        console.log("The solution is: ", rows[0].solution);
+    } catch (error) {
+        throw error;
+    }
+}
+
+pingDB();
+
+setInterval(() => {
+    pingDB();
+}, 35000);
+
 export const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
     host: DB_HOST,
     dialect: DB_DIALECT,
