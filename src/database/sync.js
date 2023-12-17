@@ -9,7 +9,9 @@ import { Comment } from "../model/comment/comment.model.js";
 
 export const syncModels = async () => {
     const options = { alter: true };
-
+    // return new Promise((resolve, reject) => {
+    //     return reject();
+    // });
     await Genre.sync(options);
     await Novel.sync(options);
     await Genre_Novel.sync(options);

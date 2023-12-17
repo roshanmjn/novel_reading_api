@@ -1,39 +1,45 @@
 {
-  "name": "novelreader",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "type":"module",
-  "scripts": {
-    "start": "nodemon --watch src --exec node src/server.js --source-maps"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@discordjs/opus": "^0.9.0",
-    "axios": "^1.4.0",
-    "bcryptjs": "^2.4.3",
-    "cheerio": "^1.0.0-rc.12",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "csvtojson": "^2.0.10",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-validator": "^7.0.1",
-    "joi": "^17.9.2",
-    "jsonwebtoken": "^9.0.1",
-    "moment": "^2.29.4",
-    "mysql2": "^3.5.2",
-    "natural": "^6.7.2",
-    "node-cron": "^3.0.2",
-    "sentiment": "^5.0.2",
-    "sequelize": "^6.32.1",
-    "sequelize-cli": "^6.6.1",
-    "swagger-autogen": "^2.23.5",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.22"
-  }
+    "name": "novelreader",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "dev": "nodemon --watch src --exec node src/server.js --source-maps"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@discordjs/opus": "^0.9.0",
+        "axios": "^1.4.0",
+        "bcryptjs": "^2.4.3",
+        "cheerio": "^1.0.0-rc.12",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "csvtojson": "^2.0.10",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-validator": "^7.0.1",
+        "joi": "^17.9.2",
+        "jsonwebtoken": "^9.0.1",
+        "moment": "^2.29.4",
+        "mysql2": "^3.5.2",
+        "natural": "^6.7.2",
+        "node-cron": "^3.0.2",
+        "sentiment": "^5.0.2",
+        "sequelize": "^6.32.1",
+        "sequelize-cli": "^6.6.1",
+        "swagger-autogen": "^2.23.5",
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.0",
+        "apos-to-lex-form": "^1.0.0",
+        "debug": "~2.6.9",
+        "morgan": "~1.9.1",
+        "nodemon": "^1.19.4",
+        "spelling-corrector": "^3.0.0",
+        "stopword": "^0.3.3"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.22"
+    }
 }
